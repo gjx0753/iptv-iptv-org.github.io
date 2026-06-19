@@ -16,9 +16,16 @@ jobs:
       - name: Get list of changed files
         id: files
         run: |
-          git fetch origin master:master
           ANY_CHANGED=false
-          ALL_CHANGED_FILES=$(git diff --diff-filter=ACMRT --name-only master -- streams/ | tr '\n' ' ')
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # 如果是 Pull Request，获取与 master 分支的差异
+            git fetch origin master:master
+            ALL_CHANGED_FILES=$(git diff --diff-filter=ACMRT --name-only master -- streams/ | tr '\n' ' ')
+          else
+            # 如果是手动触发，获取 streams 目录下的所有文件
+            ALL_CHANGED_FILES=$(find streams/ -type f | tr '\n' ' ')
+          fi
+
           if [ -n "${ALL_CHANGED_FILES}" ]; then
             ANY_CHANGED=true
           fi
